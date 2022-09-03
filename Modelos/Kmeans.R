@@ -5,50 +5,141 @@ source("C:/Users/paogr/Desktop/EMBRAPA/Modelos_por_safra/CO/Seca/lm/bibliotecas.
 wdata <- read.csv("C:/Users/paogr/Desktop/EMBRAPA2/input/doenca_v1.csv", sep = ";")
 library(cluster)
 library(stringr)
-
-
+library(rpart)
 library(fdm2id)
-predict.kmeans {fdm2id}
+library(cluster)
+### Importação das Bibliotecas
+
 
 wdata <- wdata %>% filter(!is.na(FO), !is.na(FS), FO <= 10, FS <= 10) %>% mutate(FO = str_replace(FO, ",", "."),
-                                                             FS = str_replace(FS, ",", ".")) %>% mutate(FO = as.numeric(FO), FS = as.numeric(FS))
+                                                                                 FS = str_replace(FS, ",", ".")) %>% mutate(FO = as.numeric(FO), FS = as.numeric(FS)) %>% 
+  mutate(genotipo = as.factor(genotipo))
 
-resultado <- c()
-resultado1 <- c()
-for (k in 2:5){
-  resultado[k - 1] <- pam(wdata$FO, k)$silinfo$avg.width
-  
-  resultado1[k - 1] <- pam(wdata$FS, k)$silinfo$avg.width
+### Conserto do banco de dados
+agrupados <- wdata %>% group_by(genotipo, cidade, tipo_de_grao, safra) %>% summarize(Media_fs = mean(FS),
+                                                                                     Media_fo = mean(FO),
+                                                                                     quantidade = n())
+fs_cotovelo <- c()
+fo_cotovelo <- c()
+for (indice in 2:5){
+  fs <- kmeans(agrupados$Media_fs, centers = indice)
+  fo <- kmeans(agrupados$Media_fo, centers = indice)
+  fs_cotovelo[indice - 1] <- fs$tot.withinss
+  fo_cotovelo[indice - 1] <- fo$tot.withinss
 }
 
-tabela <- data.frame(k = 2:5,
-                     FS = resultado,
-                     FO = resultado1) %>% pivot_longer(c(FO, FS), names_to = "VariavelResposta", values_to = "Resultado")
+resultado_cotovelo <- tibble(indice = 2:5,
+                             cotovelo_fs = fs_cotovelo,
+                             cotovelo_fo = fo_cotovelo) %>% pivot_longer(-indice, names_to = "Doenca", values_to = "Cotovelo")
+
+ggplot(resultado_cotovelo, aes(indice, Cotovelo, color = Doenca)) + geom_point() + geom_line() + theme_bw() + 
+labs(x = "Grupos K", y = "Cotovelo", title = "Gráfico de Cotovelo", colors = "Doenças") + facet_grid(vars(Doenca), space = "free", scale = "free")
+
+### Criação dos Modelos
 
 
-ggplot(tabela, aes(k, Resultado, color = VariavelResposta)) + geom_line() + geom_point() + geom_text(aes(label = round(Resultado, 2)), vjust = -0.5) + theme_bw()
+fo_modelo <- KMEANS(agrupados$Media_fo, k = 3)
+fs_modelo <- KMEANS(agrupados$Media_fs, k = 3)
 
 
-modelo_FO <- KMEANS(wdata$FO, k = 5)
-modelo_FS <- KMEANS(wdata$FS, k = 5)
+mudanca <- tibble(notas = seq(0, 10, 0.001), previsao_fs = as.factor(predict(fs_modelo, notas)), 
+                  previsao_fo = as.factor(predict(fo_modelo, notas)))
+
+fs_mudanca <- mudanca %>% group_by(previsao_fs) %>% summarize(maximo = max(notas))
+fo_mudanca <- mudanca %>% group_by(previsao_fo) %>% summarize(maximo = max(notas))
+
+ggplot(fs_mudanca, aes(reorder(previsao_fs, maximo), maximo, color = previsao_fs)) + geom_point() + theme_bw() + labs(x = "Grupos", y = "Notas", 
+                                                                                                    title = "Ponto de Mudança FS", color = "Grupos") + 
+  geom_text(aes(label = maximo), vjust = -0.5)
+
+ggplot(fo_mudanca, aes(reorder(previsao_fo, maximo), maximo, color = previsao_fo)) + geom_point() + theme_bw() + labs(x = "Grupos", y = "Notas", 
+                                                                                                                      title = "Ponto de Mudança FO", color = "Grupos") + 
+  geom_text(aes(label = maximo), vjust = -0.5)
 
 
-wdata <- wdata %>% mutate(grupo_fo = modelo_FO$cluster, grupo_fs = modelo_FS$cluster)
-ggplot(wdata, aes(FO, grupo_fo, color = as.factor(grupo_fo))) + geom_jitter() + theme_bw() + labs(title = "Clusterização do FO", x = "Notas FO", y = "Grupos", cols = "Grupos") + theme(legend.position = "none")
-ggplot(wdata, aes(FS, grupo_fs, color = as.factor(grupo_fs))) + geom_jitter() + theme_bw() + labs(title = "Clusterização do FS", x = "Notas FS", y = "Grupos", cols = "Grupos") + theme(legend.position = "none")
+ordem_fs <- c("3", "2", "1")
+ordem_fo <- c("1", "2", "3")
+ordem <- c("Resistente", "Neutro", "Sensível")
 
-#####################################################################################################################################
+wdata <- wdata %>% mutate(previsao_fs = factor(predict(fs_modelo, FS), levels = ordem_fs, label = ordem) , 
+                          previsao_fo = factor(predict(fo_modelo, FO), levels = ordem_fo, label = ordem))
 
-predict(modelo_FO, seq(0.2, 0.3, 0.0005))
 
-divisao <- tibble(nota_fo = seq(0, 10, 0.001), nota_fs = seq(0, 10, 0.001),
-                  previsao_fo = predict(modelo_FO, nota_fo), previsao_fs = predict(modelo_FS, nota_fs))
+ggplot(wdata, aes(previsao_fs, FS, color = previsao_fs)) + geom_jitter() + theme_bw() + 
+  labs(x = "Grupos", y = "Notas FS", title = "Distribuição do FS", color = "Grupos")
 
-grafico_fo <- divisao %>% group_by(as.factor(previsao_fo)) %>% summarize(valor_maximo_fo = max(nota_fo)) %>% rename(agrupamento = 'as.factor(previsao_fo)')
-grafico_fs <- divisao %>% group_by(as.factor(previsao_fs)) %>% summarize(valor_maximo_fs = max(nota_fs)) %>% rename(agrupamento = 'as.factor(previsao_fs)') 
+ggplot(wdata, aes(previsao_fo, FO, color = previsao_fo)) + geom_jitter() + theme_bw() + 
+  labs(x = "Grupos", y = "Notas FO", title = "Distribuição do FO", color = "Grupos")
 
-ggplot(grafico_fo, aes(reorder(agrupamento, valor_maximo_fo), valor_maximo_fo, color = agrupamento)) + geom_point() + theme_bw() + theme(legend.position = "none") + labs(x = "Grupos", y = "Notas do FO", title = "Extremos de cada ponto") + 
-  geom_text(aes(label = valor_maximo_fo), vjust = -0.5)
 
-ggplot(grafico_fs, aes(reorder(agrupamento, valor_maximo_fs), valor_maximo_fs, color = agrupamento)) + geom_point() + theme_bw() + theme(legend.position = "none") + labs(x = "Grupos", y = "Notas do FS", title = "Extremos de cada ponto") + 
-  geom_text(aes(label = valor_maximo_fs), vjust = -0.5)
+### Associação dos genótipos com os grupos
+
+# Safras :  "15/16" "16/17" "17/18" "18/19" "19/20" "20/21"
+
+gerador_graficos = function(banco, filtro){
+informacao <- banco %>% filter(safra == filtro) %>% group_by(genotipo) %>%
+summarize(Media_Fs = mean(Media_fs), Media_Fo = mean(Media_fo), predito_fs = 
+            predict(fs_modelo, Media_Fs), predito_fo = predict(fo_modelo, Media_Fo)) %>% mutate(predito_fs = factor(predito_fs, levels = ordem_fs, label = ordem),
+                                                                                                predito_fo = factor(predito_fo, levels = ordem_fo, label = ordem))
+
+grafico1 <- ggplot(informacao, aes(reorder(genotipo, -Media_Fo), Media_Fo, fill = predito_fo)) + geom_col() +
+theme_bw() + 
+labs(x = "Genótipos", y = "Nota Média", title = paste("Associação entre genótipos e grupos na Safra", filtro), color = "Grupos") +
+coord_flip() + scale_fill_brewer(palette = "Dark2")
+
+grafico2 <- ggplot(informacao, aes(reorder(genotipo, -Media_Fs), Media_Fs, fill = predito_fs)) + geom_col() +
+  theme_bw() + 
+  labs(x = "Genótipos", y = "Nota Média", title = paste("Associação entre genótipos e grupos na Safra", filtro), color = "Grupos") +
+  coord_flip() + scale_fill_brewer(palette = "Dark2")
+library(cowplot)
+print(plot_grid(grafico1, grafico2))
+}
+
+### Safra 15/16
+gerador_graficos(agrupados, "15/16")
+
+### Safra 16/17
+
+gerador_graficos(agrupados, "16/17")
+
+### Safra 17/18
+
+gerador_graficos(agrupados, "17/18")
+
+### Safra 18/19
+
+gerador_graficos(agrupados, "18/19")
+
+### Safra 19/20
+
+gerador_graficos(agrupados, "19/20")
+
+### Safra 20/21
+
+gerador_graficos(agrupados, "20/21")
+
+###---------------------------------------------------------------------------Cidades
+
+gerador_graficos_cidade = function(banco, filtro){
+  informacao <- banco %>% filter(cidade == filtro) %>% group_by(genotipo) %>%
+    summarize(Media_Fs = mean(Media_fs), Media_Fo = mean(Media_fo), predito_fs = 
+                predict(fs_modelo, Media_Fs), predito_fo = predict(fo_modelo, Media_Fo)) %>% mutate(predito_fs = factor(predito_fs, levels = ordem_fs, label = ordem),
+                                                                                                    predito_fo = factor(predito_fo, levels = ordem_fo, label = ordem))
+  
+  grafico1 <- ggplot(informacao, aes(reorder(genotipo, -Media_Fo), Media_Fo, fill = predito_fo)) + geom_col() +
+    theme_bw() + 
+    labs(x = "Genótipos", y = "Nota Média", title = paste("Associação entre genótipos e grupos na Cidade", filtro), color = "Grupos") +
+    coord_flip() + scale_fill_brewer(palette = "Dark2")
+  
+  grafico2 <- ggplot(informacao, aes(reorder(genotipo, -Media_Fs), Media_Fs, fill = predito_fs)) + geom_col() +
+    theme_bw() + 
+    labs(x = "Genótipos", y = "Nota Média", title = paste("Associação entre genótipos e grupos na Cidade", filtro), color = "Grupos") +
+    coord_flip() + scale_fill_brewer(palette = "Dark2")
+  library(cowplot)
+  print(plot_grid(grafico1, grafico2))
+}
+## Arapoti
+gerador_graficos_cidade(agrupados, "Arapoti")
+
+### Castro
+gerador_graficos_cidade(agrupados, "Castro")
