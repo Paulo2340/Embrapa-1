@@ -18,7 +18,12 @@ wdata <- wdata %>% filter(!is.na(FO), !is.na(FS), FO <= 10, FS <= 10) %>% mutate
 ### Conserto do banco de dados
 agrupados <- wdata %>% group_by(genotipo, cidade, tipo_de_grao, safra) %>% summarize(Media_fs = mean(FS),
                                                                                      Media_fo = mean(FO),
-                                                                                     quantidade = n())
+                                                                                     quantidade = n(), 
+                                                                                     cv_fs = (sd(FS, na.rm= TRUE) / Media_fs) * 100,
+                                                                                     cv_fo = (sd(FO, na.rm = TRUE)/Media_fs) * 100)
+
+                                                                                     
+ggplot(agrupados, aes(cv_fs)) + geom_boxplot()                                                             
 fs_cotovelo <- c()
 fo_cotovelo <- c()
 for (indice in 2:5){
@@ -80,7 +85,7 @@ gerador_graficos = function(banco, filtro){
 informacao <- banco %>% filter(safra == filtro) %>% group_by(genotipo) %>%
 summarize(Media_Fs = mean(Media_fs), Media_Fo = mean(Media_fo), predito_fs = 
             predict(fs_modelo, Media_Fs), predito_fo = predict(fo_modelo, Media_Fo)) %>% mutate(predito_fs = factor(predito_fs, levels = ordem_fs, label = ordem),
-                                                                                                predito_fo = factor(predito_fo, levels = ordem_fo, label = ordem))
+                                                                                                predito_fo = factor(predito_fo, levels = ordem_fo, label = ordem)) 
 
 grafico1 <- ggplot(informacao, aes(reorder(genotipo, -Media_Fo), Media_Fo, fill = predito_fo)) + geom_col() +
 theme_bw() + 
@@ -92,8 +97,8 @@ grafico2 <- ggplot(informacao, aes(reorder(genotipo, -Media_Fs), Media_Fs, fill 
   labs(x = "Genótipos", y = "Nota Média", title = paste("Associação entre genótipos e grupos na Safra", filtro), color = "Grupos") +
   coord_flip() + scale_fill_brewer(palette = "Dark2")
 library(cowplot)
-print(plot_grid(grafico1, grafico2))
-}
+print(plot_grid(grafico1, grafico2))}
+
 
 ### Safra 15/16
 gerador_graficos(agrupados, "15/16")
@@ -143,3 +148,18 @@ gerador_graficos_cidade(agrupados, "Arapoti")
 
 ### Castro
 gerador_graficos_cidade(agrupados, "Castro")
+
+
+#### Consertar
+
+grafico1 <- ggplot(informacao, aes(reorder(genotipo, -Media_Fo), Media_Fo, fill = predito_fo)) + 
+  geom_col() +
+
+grafico2 <- ggplot(informacao, aes(reorder(genotipo, -Media_Fs), Media_Fs, fill = predito_fs)) + geom_col() +
+  theme_bw() + 
+  labs(x = "", y = "Valor Médio", title = paste("Safra", filtro), color = "Grupos",
+       fill= "Fusarium solani") +
+  coord_flip() + scale_fill_brewer(palette = "Dark2")+
+  theme(legend.position = "top", 
+        legend.title = element_text(colour="red", size=10,  face="bold"),
+        axis.text =  element_text(face="bold" ))
