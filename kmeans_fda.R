@@ -1,0 +1,6 @@
+library(tidyverse)
+library(fda.usc)
+wdata <- read.csv("C:/Users/paogr/Desktop/EMBRAPA2/input/todo_agrupado.csv", sep = ";")
+wdata <- wdata[,-c(1, 2)] %>% mutate(ONI = as.numeric(str_replace(ONI, ",", ".")))
+resposta <- fdata(matrix(wdata$ONI))
+teste <- kmeans.fd(resposta)
