@@ -2,15 +2,14 @@
 set.seed(123)
 library(tidyverse)
 library(fda.usc)
-banco <- read.csv("C:/Users/paogr/Desktop/EMBRAPA2/input/wdata_atual.csv")
+banco <- read.csv("C:/Users/paogr/Desktop/Arquivos Importantes/EMBRAPA2/input/wdata_atual.csv")
 
 
 #### Criação do modelo e atribuição dos grupos
 grupos <- fdata(as.matrix(banco[,43:48], 1417, 6))
 kmeans1 <- kmeans.fd(grupos, 3)
 banco$predito <- kmeans1$cluster
-kmeans1$centers
-kmeans1$cluster
+
 
 ### Calculando a moda geral
 tabela <- banco %>% group_by(genotipo, as.character(predito)) %>% summarize(quantidade = n()) %>%

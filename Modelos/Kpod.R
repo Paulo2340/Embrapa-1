@@ -14,7 +14,6 @@ fs_matriz <- data.matrix(wdata %>% select(FS1:FS11))
 modelo_fo_k_3 <- kpod(fo_matriz, 3)
 modelo_fo_k_4 <- kpod(fo_matriz, 4)
 modelo_fo_k_5 <- kpod(fo_matriz, 5)
-
 pontos_resultados <- data.frame(k = seq(3, 5),
                                 resultado = c(modelo_fo_k_3$fit, modelo_fo_k_4$fit, 
                                               modelo_fo_k_5$fit))

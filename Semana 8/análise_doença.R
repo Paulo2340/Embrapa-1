@@ -4,9 +4,9 @@ library(lubridate)
 library(kpodclustr)
 library(tidytext) 
 library(tidyverse)
-source("C:/Users/paogr/Desktop/EMBRAPA/Modelos_por_safra/CO/Seca/lm/bibliotecas.R")
-source("C:/Users/paogr/Desktop/EMBRAPA/Modelos_por_safra/dados_e_etc/general_functions.R")
-wdata <- read_csv("C:/Users/paogr/Desktop/EMBRAPA2/input/wdata_atual.csv")
+source("C:/Users/paogr/Desktop/Arquivos Importantes/EMBRAPA/Modelos_por_safra/CO/Seca/lm/bibliotecas.R")
+source("C:/Users/paogr/Desktop/Arquivos Importantes/EMBRAPA/Modelos_por_safra/dados_e_etc/general_functions.R")
+wdata <- read_csv("C:/Users/paogr/Desktop/Arquivos Importantes/EMBRAPA2/input/banco_com_efeitos2.csv")
 
 
 ### FO
@@ -17,11 +17,11 @@ summarize(quantidade = n()) %>% group_by(genotipo) %>% mutate(soma = sum(quantid
 filter(quantidade == maximo) %>% mutate(porcentagem = maximo / soma) %>% dplyr::select(genotipo, fo_grupo, porcentagem) %>%
 distinct(genotipo, .keep_all = TRUE)
 ### Criação do gráfico da Moda para FO
-
+x11()
 ggplot(wdata_fo, aes(reorder(genotipo, porcentagem), porcentagem, color = fo_grupo, ymin = 0, ymax = porcentagem)) + geom_point() + 
 geom_pointrange() + theme_bw() + labs(x = "Genótipos", y = "Porcentagem de repetição", title = "Modas de grupos de doenças FO para cada genótipo") + 
 coord_flip() + geom_text(aes(label = round(porcentagem, 2)), hjust = -0.5, size = 2.5)
-
+wdata %>% select(fo_grupo) %>% unique()
 
 ### Criação da tabela para avaliar a mudança das doenças
 tabela_ano_fo <- wdata[,3:50] %>% mutate(fo_grupo = as.character(fo_grupo), data_semeadura = lubridate::as_datetime(data_semeadura), ano_colheita = year(data_semeadura)) %>%
