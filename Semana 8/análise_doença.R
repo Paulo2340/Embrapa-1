@@ -14,14 +14,13 @@ wdata <- read_csv("C:/Users/paogr/Desktop/Arquivos Importantes/EMBRAPA2/input/ba
 ###Criação da tabela da moda do FO 
 wdata_fo <- wdata[,3:50] %>% mutate(fo_grupo = as.character(fo_grupo)) %>% group_by(genotipo, fo_grupo) %>%
 summarize(quantidade = n()) %>% group_by(genotipo) %>% mutate(soma = sum(quantidade), maximo = max(quantidade)) %>%
-filter(quantidade == maximo) %>% mutate(porcentagem = maximo / soma) %>% dplyr::select(genotipo, fo_grupo, porcentagem) %>%
+filter(quantidade == maximo) %>% mutate(porcentagem = maximo / soma * 100) %>% dplyr::select(genotipo, fo_grupo, porcentagem) %>%
 distinct(genotipo, .keep_all = TRUE)
 ### Criação do gráfico da Moda para FO
-x11()
-ggplot(wdata_fo, aes(reorder(genotipo, porcentagem), porcentagem, color = fo_grupo, ymin = 0, ymax = porcentagem)) + geom_point() + 
-geom_pointrange() + theme_bw() + labs(x = "Genótipos", y = "Porcentagem de repetição", title = "Modas de grupos de doenças FO para cada genótipo") + 
-coord_flip() + geom_text(aes(label = round(porcentagem, 2)), hjust = -0.5, size = 2.5)
-wdata %>% select(fo_grupo) %>% unique()
+### Muito Tolerante
+ggplot(wdata_fo %>% filter(fo_grupo == "Muito Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = genotipo)) + 
+geom_bar(stat = "identity") + coord_polar("x", 0) + theme_bw() + 
+theme(legend.position = "none") + geom_text(aes(label = round(porcentagem, 2)), size = 2.5)
 
 ### Criação da tabela para avaliar a mudança das doenças
 tabela_ano_fo <- wdata[,3:50] %>% mutate(fo_grupo = as.character(fo_grupo), data_semeadura = lubridate::as_datetime(data_semeadura), ano_colheita = year(data_semeadura)) %>%
@@ -56,7 +55,7 @@ for (indice in 1:nrow(tabela_ano_fo)){
 ### Genótipos que aparecem mais que 3 vezes no FO
 teste <- tabela_ano_fo  %>% group_by(genotipo) %>% summarize(quantidade = n()) %>% filter(quantidade >= 3)
 ### Calculo exato dos índices
-tabela_fo_mudancas <- tabela_ano_fo %>% filter(genotipo %in% teste$genotipo) %>% group_by(genotipo) %>% summarize(mudanca_total = sum(mudanca_predito) / (n() - 1), permanencia_total = sum(nao_mudanca_predito) / (n() - 1)) %>%
+tabela_fo_mudancas <- tabela_ano_fo %>% filter(genotipo %in% teste$genotipo) %>% group_by(genotipo) %>% summarize(mudanca_total = sum(mudanca_predito) / (n() - 1) * 100, permanencia_total = sum(nao_mudanca_predito) / (n() - 1) * 100) %>%
 mutate(mudanca_total = case_when(is.na(mudanca_total) ~ 0,
                                  !is.na(mudanca_total) ~ mudanca_total),
                                  permanencia_total =  case_when(is.na(permanencia_total) ~ 0,
@@ -64,13 +63,13 @@ mutate(mudanca_total = case_when(is.na(mudanca_total) ~ 0,
 ### Criação do gráfico de mudança para FO
 x11()
 ggplot(tabela_fo_mudancas, aes(reorder(genotipo, mudanca_total), mudanca_total, ymin = 0, ymax = mudanca_total)) + geom_point() + geom_pointrange() + 
-theme_bw() + labs(x = "Genótipos", y = "Quantidade de Saltos Por Genótipo", title = "Saltos de Cada genótipo de ano para ano, para doença FO") + coord_flip() +
+theme_bw() + labs(x = "Genótipos", y = "Porcentagem de Saltos Por Genótipo", title = "Saltos de Cada genótipo de ano para ano, para doença FO") + coord_flip() +
 geom_text(aes(label = round(mudanca_total, 2)), hjust = -0.5, size = 2.5)
 
 
 ### Criação do gráfico de não mudança Para FO
 ggplot(tabela_fo_mudancas, aes(reorder(genotipo, permanencia_total), permanencia_total, ymin = 0, ymax = permanencia_total)) + geom_point() + geom_pointrange() + 
-  theme_bw() + labs(x = "Genótipos", y = "Quantidade de Não Saltos Por Genótipo", title = "Não saltos de Cada genótipo de ano para ano, para doença FO") + coord_flip() +
+  theme_bw() + labs(x = "Genótipos", y = "Porcentagem de Não Saltos Por Genótipo", title = "Não saltos de Cada genótipo de ano para ano, para doença FO") + coord_flip() +
 geom_text(aes(label = round(permanencia_total, 2)), hjust = -0.5, size = 2.5)
 ### FS
 
@@ -78,7 +77,7 @@ geom_text(aes(label = round(permanencia_total, 2)), hjust = -0.5, size = 2.5)
 ### Banco que mostra a porcentagem de aparição do FS
 wdata_fs <- wdata[,3:50] %>% mutate(fs_grupo = as.character(fs_grupo)) %>% group_by(genotipo, fs_grupo) %>%
   summarize(quantidade = n()) %>% group_by(genotipo) %>% mutate(soma = sum(quantidade), maximo = max(quantidade)) %>%
-  filter(quantidade == maximo) %>% mutate(porcentagem = maximo / soma) %>% dplyr::select(genotipo, fs_grupo, porcentagem) %>%
+  filter(quantidade == maximo) %>% mutate(porcentagem = maximo / soma * 100) %>% dplyr::select(genotipo, fs_grupo, porcentagem) %>%
   distinct(genotipo, .keep_all = TRUE)
 
 #### Moda do FS
@@ -86,7 +85,7 @@ wdata_fs <- wdata[,3:50] %>% mutate(fs_grupo = as.character(fs_grupo)) %>% group
 x11()
 ggplot(wdata_fs, aes(reorder(genotipo, porcentagem), porcentagem, color = fs_grupo, ymin = 0, ymax = porcentagem)) + geom_point() + 
   geom_pointrange() + theme_bw() + labs(x = "Genótipos", y = "Porcentagem de repetição", title = "Modas de grupos de doenças FS para cada genótipo") + 
-  coord_flip() + geom_text(aes(label = round(porcentagem, 2)), hjust = -0.5, size = 2.5)
+  coord_flip() + geom_text(aes(label = round(porcentagem, 2)), hjust = -0.5, size = 2.5) + theme(axis.text.y = element_text(size = 7.5, angle = 45))
 
 
 
@@ -119,7 +118,7 @@ for (indice in 1:nrow(tabela_ano_fs)){
   }
 }
 
-tabela_fs_mudancas <- tabela_ano_fs %>% group_by(genotipo) %>% summarize(mudanca_total = sum(mudanca_predito) / (n() - 1), permanencia_total = sum(nao_mudanca_predito) / (n() - 1)) %>%
+tabela_fs_mudancas <- tabela_ano_fs %>% group_by(genotipo) %>% summarize(mudanca_total = sum(mudanca_predito) / (n() - 1) * 100, permanencia_total = sum(nao_mudanca_predito) / (n() - 1) * 100) %>%
   mutate(mudanca_total = case_when(is.na(mudanca_total) ~ 0,
                                    !is.na(mudanca_total) ~ mudanca_total),
          permanencia_total =  case_when(is.na(permanencia_total) ~ 0,
@@ -127,11 +126,11 @@ tabela_fs_mudancas <- tabela_ano_fs %>% group_by(genotipo) %>% summarize(mudanca
 ### Saltos do FS
 x11()
 ggplot(tabela_fs_mudancas, aes(reorder(genotipo, mudanca_total), mudanca_total, ymin = 0, ymax = mudanca_total)) + geom_point() + geom_pointrange() + 
-  theme_bw() + labs(x = "Genótipos", y = "Quantidade de Saltos Por Genótipo", title = "Saltos de Cada genótipo de ano para ano, para doença FS") + coord_flip() +
+  theme_bw() + labs(x = "Genótipos", y = "Porcentagem de Saltos Por Genótipo", title = "Saltos de Cada genótipo de ano para ano, para doença FS") + coord_flip() +
   geom_text(aes(label = round(mudanca_total, 2)), hjust = -0.5, size = 2.5)
 
 
 ### Não saltos FS
 ggplot(tabela_fs_mudancas, aes(reorder(genotipo, permanencia_total), permanencia_total, ymin = 0, ymax = permanencia_total)) + geom_point() + geom_pointrange() + 
-  theme_bw() + labs(x = "Genótipos", y = "Quantidade de Não Saltos Por Genótipo", title = "Não saltos de Cada genótipo de ano para ano, para doença FS") + coord_flip() +
+  theme_bw() + labs(x = "Genótipos", y = "Porcentagem de Não Saltos Por Genótipo", title = "Não saltos de Cada genótipo de ano para ano, para doença FS") + coord_flip() +
   geom_text(aes(label = round(permanencia_total, 2)), hjust = -0.5, size = 2.5)

@@ -4,8 +4,8 @@ library(lubridate)
 library(kpodclustr)
 library(tidytext) 
 library(tidyverse)
-source("C:/Users/paogr/Desktop/EMBRAPA/Modelos_por_safra/CO/Seca/lm/bibliotecas.R")
-source("C:/Users/paogr/Desktop/EMBRAPA/Modelos_por_safra/dados_e_etc/general_functions.R")
+source("C:/Users/paogr/Desktop/Arquivos Importantes/EMBRAPA/Modelos_por_safra/CO/Seca/lm/bibliotecas.R")
+source("C:/Users/paogr/Desktop/Arquivos Importantes/EMBRAPA\Modelos_por_safra/dados_e_etc/general_functions.R")
 wdata <- read_csv("C:/Users/paogr/Desktop/EMBRAPA2/input/wdata_atual.csv") %>% mutate(fo_grupo = as.character(fo_grupo),
                                                                                       fs_grupo = as.character(fs_grupo))
 
@@ -50,8 +50,8 @@ for (indice in 1:nrow(quantidade)){
 }
 
 ### Criação da porcentagem
-quantidade <- quantidade %>% group_by(genotipo) %>% mutate(mudanca = mudanca / (n() - 1),
-                                                           nao_mudanca = nao_mudanca / (n() - 1)) %>%
+quantidade <- quantidade %>% group_by(genotipo) %>% mutate(mudanca = mudanca / (n() - 1) * 100,
+                                                           nao_mudanca = nao_mudanca / (n() - 1) * 100) %>%
 group_by(genotipo) %>% summarize(mudanca = sum(mudanca), 
                                  nao_mudanca = sum(nao_mudanca)) %>% filter(!is.na(mudanca)) %>% mutate(media = (mudanca + nao_mudanca) / 2)
 

@@ -50,8 +50,8 @@ for (c in 2:nrow(tabela_sumarizada)){
 tabela_sumarizada <- tabela_sumarizada %>% select(-c(quantidade, maximo))
 contar <- tabela_sumarizada %>% group_by(genotipo) %>% summarise(quantidade = n()) %>% filter(quantidade > 1) %>% select(genotipo)
 tabela_sumarizada1 <- tabela_sumarizada %>% filter(genotipo %in% contar$genotipo) %>%
-  group_by(genotipo) %>% summarize(quantidade = n(), soma_mudanca = sum(mudanca) / (quantidade -1),
-                                soma_nao_mudanca = sum(nao_mudanca) / (quantidade - 1))
+  group_by(genotipo) %>% summarize(quantidade = n(), soma_mudanca = sum(mudanca) / (quantidade -1) * 100,
+                                soma_nao_mudanca = sum(nao_mudanca) / (quantidade - 1) * 100)
 
 
 x11()
@@ -101,8 +101,8 @@ for (c in 2:nrow(tabela_sumarizada)){
 tabela_sumarizada <- tabela_sumarizada %>% select(-c(quantidade, maximo))
 contar <- tabela_sumarizada %>% group_by(genotipo) %>% summarise(quantidade = n()) %>% filter(quantidade > 1) %>% select(genotipo)
 tabela_sumarizada1 <- tabela_sumarizada %>% filter(genotipo %in% contar$genotipo) %>%
-  group_by(genotipo) %>% summarize(quantidade = n(), soma_mudanca = sum(mudanca) / (quantidade -1),
-                                   soma_nao_mudanca = sum(nao_mudanca) / (quantidade - 1))
+  group_by(genotipo) %>% summarize(quantidade = n(), soma_mudanca = sum(mudanca) / (quantidade -1) * 100,
+                                   soma_nao_mudanca = sum(nao_mudanca) / (quantidade - 1)* 100)
 
 x11()
 ### Mudança FS
