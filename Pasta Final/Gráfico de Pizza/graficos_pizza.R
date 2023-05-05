@@ -12,11 +12,10 @@ wdata <- read_csv("C:/Users/paogr/Desktop/Arquivos Importantes/EMBRAPA2/input/ba
 
 
 
-
 ### FO
 
 ###Criação da tabela da moda do FO 
-wdata_fo <- wdata[,3:50] %>% arrange(data_semeadura) %>% mutate(fo_grupo = as.character(fo_grupo)) %>% group_by(genotipo, fo_grupo) %>%
+wdata_fo <- wdata[,3:50] %>% mutate(fo_grupo = as.character(fo_grupo)) %>% group_by(genotipo, fo_grupo) %>%
   summarize(quantidade = n()) %>% group_by(genotipo) %>% mutate(soma = sum(quantidade), maximo = max(quantidade)) %>%
   filter(quantidade == maximo) %>% mutate(porcentagem = maximo / soma * 100) %>% dplyr::select(genotipo, fo_grupo, porcentagem) %>%
   distinct(genotipo, .keep_all = TRUE)
@@ -25,91 +24,86 @@ wdata_fo <- wdata[,3:50] %>% arrange(data_semeadura) %>% mutate(fo_grupo = as.ch
 
 ### Muito Tolerante
 x11()
-ggplot(wdata_fo %>% filter(fo_grupo == "Muito Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem, ymin = 0, ymax = porcentagem)) + 
+ggplot(wdata_fo %>% filter(fo_grupo == "Muito Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem)) + 
   geom_bar(stat = "identity") + coord_polar("x", 0) + theme_minimal() + scale_fill_gradient(low = "blue", 
                                                                                            high  = "red") + 
    labs(x = "",
    y = "Frêquencia Relativa(%)",
   title = paste("Intensidade percentual dos genotipos classificados como Muito Tolerante na Doença FO"),
   fill = "Porcentagem") + theme(axis.text.y = element_blank(),
-                                axis.title.y = element_blank()) + geom_point() + geom_pointrange(linetype = 2) 
+                                axis.title.y = element_blank()) 
 x11()
 ### Tolerante
-ggplot(wdata_fo %>% filter(fo_grupo == "Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem, ymin = 0, ymax = porcentagem)) + 
+ggplot(wdata_fo %>% filter(fo_grupo == "Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem)) + 
   geom_bar(stat = "identity") + coord_polar("x", 0) + theme_minimal() + scale_fill_gradient(low = "blue", 
                                                                                             high  = "red") + 
   labs(x = "",
        y = "Frêquencia Relativa(%)",
        title = paste("Intensidade percentual dos genotipos classificados como Tolerante na Doença FO"),
        fill = "Porcentagem") + theme(axis.text.y = element_blank(),
-                                     axis.title.y = element_blank()) + geom_point() + geom_pointrange(linetype = 2)
+                                     axis.title.y = element_blank()) 
 x11()
 ### Muito Pouco Tolerante 
 
-ggplot(wdata_fo %>% filter(fo_grupo == "Muito Pouco Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem, ymin = 0, ymax = porcentagem)) + 
+ggplot(wdata_fo %>% filter(fo_grupo == "Muito Pouco Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem)) + 
   geom_bar(stat = "identity") + coord_polar("x", 0) + theme_minimal() + scale_fill_gradient(low = "blue", 
                                                                                             high  = "red") + 
   labs(x = "",
        y = "Frêquencia Relativa(%)",
        title = paste("Intensidade percentual dos genotipos classificados como Muito Pouco Tolerante na Doença FO"),
        fill = "Porcentagem") + theme(axis.text.y = element_blank(),
-                                     axis.title.y = element_blank()) + geom_point() + geom_pointrange(linetype = 2)
+                                     axis.title.y = element_blank()) 
 
 
 
 #### FS
 
 
-wdata_fs <- wdata[,3:50] %>% arrange(data_semeadura) %>% mutate(fs_grupo = as.character(fs_grupo)) %>% group_by(genotipo, fs_grupo) %>%
+wdata_fs <- wdata[,3:50] %>% mutate(fs_grupo = as.character(fs_grupo)) %>% group_by(genotipo, fs_grupo) %>%
   summarize(quantidade = n()) %>% group_by(genotipo) %>% mutate(soma = sum(quantidade), maximo = max(quantidade)) %>%
   filter(quantidade == maximo) %>% mutate(porcentagem = maximo / soma * 100) %>% dplyr::select(genotipo, fs_grupo, porcentagem) %>%
-  distinct(genotipo, .keep_all = TRUE) 
+  distinct(genotipo, .keep_all = TRUE)
 
-
-wdata_fs$fs_grupo %>% unique()
 
 x11()
 ### Muito Tolerante
-ggplot(wdata_fs %>% filter(fs_grupo == "Muito Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem, ymin = 0, ymax = porcentagem)) + 
+ggplot(wdata_fs %>% filter(fs_grupo == "Muito Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem)) + 
   geom_bar(stat = "identity") + coord_polar("x", 0) + theme_minimal() + scale_fill_gradient(low = "blue", 
                                                                                             high  = "red") + 
   labs(x = "",
        y = "Frêquencia Relativa(%)",
        title = paste("Intensidade percentual dos genotipos classificados como Muito Tolerante na Doença FS"),
        fill = "Porcentagem") + theme(axis.text.y = element_blank(),
-                                     axis.title.y = element_blank()) + geom_point() + geom_pointrange(linetype = 2)
+                                     axis.title.y = element_blank()) 
 x11()
 ### Tolerante
-ggplot(wdata_fs %>% filter(fs_grupo == "Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem, ymin = 0, ymax = porcentagem)) + 
+ggplot(wdata_fs %>% filter(fs_grupo == "Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem)) + 
   geom_bar(stat = "identity") + coord_polar("x", 0) + theme_minimal() + scale_fill_gradient(low = "blue", 
                                                                                             high  = "red") + 
   labs(x = "",
        y = "Frêquencia Relativa(%)",
        title = paste("Intensidade percentual dos genotipos classificados como Tolerante na Doença FS"),
        fill = "Porcentagem") + theme(axis.text.y = element_blank(),
-                                     axis.title.y = element_blank()) + geom_point() + geom_pointrange(linetype = 2)
+                                     axis.title.y = element_blank()) 
 x11()
 ### Muito Pouco Tolerante 
 
-ggplot(wdata_fs %>% filter(fs_grupo == "Muito Pouco Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem, ymin = 0, ymax = porcentagem)) + 
+ggplot(wdata_fs %>% filter(fs_grupo == "Muito Pouco Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem)) + 
   geom_bar(stat = "identity") + coord_polar("x", 0) + theme_minimal() + scale_fill_gradient(low = "blue", 
                                                                                             high  = "red") + 
   labs(x = "",
        y = "Frêquencia Relativa(%)",
        title = paste("Intensidade percentual dos genotipos classificados como Muito Pouco Tolerante na Doença FS"),
        fill = "Porcentagem") + theme(axis.text.y = element_blank(),
-                                     axis.title.y = element_blank()) + geom_point() + geom_pointrange(linetype = 2)
+                                     axis.title.y = element_blank())
 
 ### Pouco Tolerante
 x11()
-ggplot(wdata_fs %>% filter(fs_grupo == "Pouco Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem, ymin = 0, ymax = porcentagem)) + 
+ggplot(wdata_fs %>% filter(fs_grupo == "Pouco Tolerante"), aes(reorder(genotipo, porcentagem), porcentagem, fill = porcentagem)) + 
   geom_bar(stat = "identity") + coord_polar("x", 0) + theme_minimal() + scale_fill_gradient(low = "blue", 
                                                                                             high  = "red") + 
   labs(x = "",
        y = "Frêquencia Relativa(%)",
        title = paste("Intensidade percentual dos genotipos classificados como Pouco Tolerante na Doença FS"),
        fill = "Porcentagem") + theme(axis.text.y = element_blank(),
-                                     axis.title.y = element_blank()) + geom_point() + geom_pointrange(linetype = 2)
-
-
-
+                                     axis.title.y = element_blank())
