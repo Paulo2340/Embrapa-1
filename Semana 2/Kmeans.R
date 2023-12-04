@@ -42,8 +42,9 @@ labs(x = "Grupos K", y = "Cotovelo", title = "Gráfico de Cotovelo", colors = "D
 
 ### Criação dos Modelos
 
-
+set.seed(123)
 fo_modelo <- KMEANS(agrupados$Media_fo, k = 3)
+set.seed(123)
 fs_modelo <- KMEANS(agrupados$Media_fs, k = 3)
 
 

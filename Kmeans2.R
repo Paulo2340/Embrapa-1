@@ -24,7 +24,9 @@ group_by(Local, cidade, estado, fungicida, irrigacao, genotipo, tipo_de_grao, da
 
 ### Criando os grupos
 
+set.seed(123)
 modelo_fo <- KMEANS(wdata$Media_Maximo_Fo, k = 4)
+set.seed(123)
 modelo_fs <- KMEANS(wdata$Media_Maximo_Fs, k = 4)
 
 divisao <- tibble(notas = seq(0, 10, 0.01), predito_fo = predict(modelo_fo, notas),

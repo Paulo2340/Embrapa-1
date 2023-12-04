@@ -2,7 +2,7 @@
 set.seed(123)
 library(tidyverse)
 library(fda.usc)
-banco <- read.csv("C:/Users/paogr/Desktop/EMBRAPA2/input/todo_agrupado.csv")
+banco <- read.csv("C:/Users/paogr/Desktop/Arquivos Importantes/EMBRAPA2/input/todo_agrupado.csv")
 
 par(mar = c(3, 3, 1, 1))
 #### Criação do modelo e atribuição dos grupos
